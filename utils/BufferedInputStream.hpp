@@ -1,0 +1,64 @@
+//
+// Created by 刘涛闻 on 2021/9/19.
+//
+
+#ifndef PYTHON_VIRTUAL_MACHINE_BUFFEREDINPUTSTREAM_H
+#define PYTHON_VIRTUAL_MACHINE_BUFFEREDINPUTSTREAM_H
+
+#include <cstdio>
+
+#define BUFFER_LEN 256
+
+class BufferedInputStream {
+private:
+    FILE* fp;
+    char szBuffer[BUFFER_LEN];
+    unsigned short index;
+
+public:
+    BufferedInputStream(char const * filename){
+        fp = fopen(filename, "rb");
+        fread(szBuffer, BUFFER_LEN * sizeof(char), 1, fp);
+        index = 0;
+    }
+
+    ~BufferedInputStream() {
+        close();
+    }
+
+    char read() {
+        if (index < BUFFER_LEN)
+        {
+            return szBuffer[index++];
+        }
+        else{
+            index = 0;
+            fread(szBuffer, BUFFER_LEN * sizeof(char), 1, fp);
+            return szBuffer[index++];
+        }
+    }
+
+    int read_int() {
+        int b1 = read() & 0xff;
+        int b2 = read() & 0xff;
+        int b3 = read() & 0xff;
+        int b4 = read() & 0xff;
+
+        return b4 << 24 | b3 << 16 | b2 << 8 | b1;
+    }
+
+    void unread(){
+        index--;
+    }
+
+    void close(){
+        if (fp != nullptr)
+        {
+            fclose(fp);
+            fp = nullptr;
+        }
+    }
+};
+
+
+#endif //PYTHON_VIRTUAL_MACHINE_BUFFEREDINPUTSTREAM_H
